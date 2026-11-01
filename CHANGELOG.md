@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Render Mermaid diagram blocks with [Pele](https://github.com/obsidianmd/pele) (MIT) instead of Mermaid: vendored `pele.global.js` with caching, error blocks, and light/dark preview themes
+
 ## [3000.0.7] - 2026-07-13
 
 ### Added
