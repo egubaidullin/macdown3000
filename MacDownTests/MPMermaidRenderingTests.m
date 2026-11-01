@@ -421,11 +421,10 @@ static BOOL MPPeleSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
     return condition();
 }
 
-// Loads the bundled Pele library and pele.init.js into a legacy WebView,
-// injects one ```mermaid block with the given source, and waits until the
-// init script replaces it with an SVG. Returns YES when exactly one <svg>
-// is present and no .language-mermaid element remains.
-- (BOOL)peleRendersDiagramSource:(NSString *)source
+// Loads the bundled Pele library and pele.init.js into a legacy WebView.
+// On success returns YES with the live objects in outView/outWindow
+// (caller closes them).
+- (BOOL)peleLoadTestPage:(WebView **)outView window:(NSWindow **)outWindow
 {
     NSURL *peleURL = [[NSBundle mainBundle] URLForResource:@"pele.global"
                                              withExtension:@"js"
@@ -465,20 +464,46 @@ static BOOL MPPeleSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
         [window close];
         return NO;
     }
+    *outView = webView;
+    *outWindow = window;
+    return YES;
+}
 
-    // Escape the source for embedding in a JS string literal.
-    NSString *escaped = [[[[source
+// Escapes a diagram source for embedding in a JS string literal.
+- (NSString *)peleEscapeSource:(NSString *)source
+{
+    return [[[[source
         stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"]
         stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"]
         stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]
         stringByReplacingOccurrencesOfString:@"\r" withString:@"\\r"];
+}
+
+// Injects one ```mermaid block with the given source into the page.
+- (void)peleInjectSource:(NSString *)source intoWebView:(WebView *)webView
+{
     NSString *injectJS = [NSString stringWithFormat:
         @"var pre = document.createElement('pre');"
          "var code = document.createElement('code');"
          "code.className = 'language-mermaid';"
          "code.textContent = '%@';"
-         "pre.appendChild(code); document.body.appendChild(pre);", escaped];
+         "pre.appendChild(code); document.body.appendChild(pre);",
+        [self peleEscapeSource:source]];
     [webView stringByEvaluatingJavaScriptFromString:injectJS];
+}
+
+// Loads the bundled Pele library and pele.init.js into a legacy WebView,
+// injects one ```mermaid block with the given source, and waits until the
+// init script replaces it with an SVG. Returns YES when exactly one <svg>
+// is present and no .language-mermaid element remains.
+- (BOOL)peleRendersDiagramSource:(NSString *)source
+{
+    WebView *webView = nil;
+    NSWindow *window = nil;
+    if (![self peleLoadTestPage:&webView window:&window])
+        return NO;
+
+    [self peleInjectSource:source intoWebView:webView];
 
     BOOL rendered = MPPeleSpinUntil(20.0, ^{
         return [[webView stringByEvaluatingJavaScriptFromString:
@@ -507,6 +532,122 @@ static BOOL MPPeleSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
 {
     [self peleRendersDiagramSource:
         @"sequenceDiagram\n    Alice->>Bob: Hello\n    Bob-->>Alice: Hi"];
+}
+
+- (void)testInvalidDiagramShowsErrorAndSource
+{
+    WebView *webView = nil;
+    NSWindow *window = nil;
+    if (![self peleLoadTestPage:&webView window:&window])
+        return;
+
+    NSString *source = @"not a diagram {{{";
+    [self peleInjectSource:source intoWebView:webView];
+
+    BOOL errored = MPPeleSpinUntil(20.0, ^{
+        return [[webView stringByEvaluatingJavaScriptFromString:
+            @"String(document.querySelectorAll('pre.pele-error').length)"]
+            isEqualToString:@"1"];
+    });
+    NSString *errorText = [webView stringByEvaluatingJavaScriptFromString:
+        @"String((document.querySelector('pre.pele-error') || {}).textContent)"];
+
+    [webView close];
+    [window close];
+
+    XCTAssertTrue(errored, @"Invalid diagram should produce an error block");
+    XCTAssertTrue([errorText containsString:source],
+                  @"Error block should show the offending source, got: %@",
+                  errorText);
+}
+
+- (void)testRepeatedSourceRendersOnce
+{
+    WebView *webView = nil;
+    NSWindow *window = nil;
+    if (![self peleLoadTestPage:&webView window:&window])
+        return;
+
+    NSString *source = @"graph TD\n    A --> B";
+    [self peleInjectSource:source intoWebView:webView];
+    BOOL first = MPPeleSpinUntil(20.0, ^{
+        return [[webView stringByEvaluatingJavaScriptFromString:
+            @"String(document.querySelectorAll('svg').length)"]
+            isEqualToString:@"1"];
+    });
+
+    // Simulate a live-preview DOM replacement with identical content.
+    [self peleInjectSource:source intoWebView:webView];
+    BOOL second = MPPeleSpinUntil(20.0, ^{
+        return [[webView stringByEvaluatingJavaScriptFromString:
+            @"String(document.querySelectorAll('svg').length)"]
+            isEqualToString:@"2"];
+    });
+    NSString *renders = [webView stringByEvaluatingJavaScriptFromString:
+        @"String(window.__peleRenderStats.renders)"];
+    NSString *hits = [webView stringByEvaluatingJavaScriptFromString:
+        @"String(window.__peleRenderStats.cacheHits)"];
+
+    [webView close];
+    [window close];
+
+    XCTAssertTrue(first && second, @"Both diagrams should render");
+    XCTAssertTrue([renders isEqualToString:@"1"],
+                  @"Repeated source must hit the cache (renders=%@)", renders);
+    XCTAssertTrue([hits isEqualToString:@"1"],
+                  @"Expected one cache hit (hits=%@)", hits);
+}
+
+- (void)testDarkBackgroundUsesDarkVariables
+{
+    WebView *webView = nil;
+    NSWindow *window = nil;
+    if (![self peleLoadTestPage:&webView window:&window])
+        return;
+
+    [webView stringByEvaluatingJavaScriptFromString:
+        @"document.body.style.background = '#1e1e1e';"];
+    [self peleInjectSource:@"graph TD\n    A --> B" intoWebView:webView];
+    BOOL rendered = MPPeleSpinUntil(20.0, ^{
+        return [[webView stringByEvaluatingJavaScriptFromString:
+            @"String(document.querySelectorAll('svg').length)"]
+            isEqualToString:@"1"];
+    });
+    NSString *wrapperStyle = [webView stringByEvaluatingJavaScriptFromString:
+        @"String(document.querySelector('svg').parentElement.getAttribute('style'))"];
+
+    [webView close];
+    [window close];
+
+    XCTAssertTrue(rendered, @"Diagram should render on dark background");
+    XCTAssertTrue([wrapperStyle containsString:@"--pele-bg:#1e1e1e"],
+                  @"Dark background should select dark variables, got: %@",
+                  wrapperStyle);
+}
+
+- (void)testLightBackgroundUsesLightVariables
+{
+    WebView *webView = nil;
+    NSWindow *window = nil;
+    if (![self peleLoadTestPage:&webView window:&window])
+        return;
+
+    [self peleInjectSource:@"graph TD\n    A --> B" intoWebView:webView];
+    BOOL rendered = MPPeleSpinUntil(20.0, ^{
+        return [[webView stringByEvaluatingJavaScriptFromString:
+            @"String(document.querySelectorAll('svg').length)"]
+            isEqualToString:@"1"];
+    });
+    NSString *wrapperStyle = [webView stringByEvaluatingJavaScriptFromString:
+        @"String(document.querySelector('svg').parentElement.getAttribute('style'))"];
+
+    [webView close];
+    [window close];
+
+    XCTAssertTrue(rendered, @"Diagram should render on light background");
+    XCTAssertTrue([wrapperStyle containsString:@"--pele-bg:#fff"],
+                  @"Light background should select light variables, got: %@",
+                  wrapperStyle);
 }
 
 @end
