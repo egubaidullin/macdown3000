@@ -27,7 +27,7 @@ not a diagram {{{
 ```
 ````
 
-3. В Preferences → General → HTML → Mermaid должен быть включён.
+3. В Preferences → Rendering → Mermaid должен быть включён (с этой версии включён по умолчанию).
 
 ## Шаги
 

@@ -416,6 +416,55 @@
 }
 
 /**
+ * Test that Mermaid diagrams are enabled by default for fresh installs
+ * (no htmlMermaid key yet).
+ */
+- (void)testMermaidEnabledByDefaultForFreshInstall
+{
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+
+    NSNumber *originalMermaid = [defaults objectForKey:@"htmlMermaid"];
+
+    // Simulate fresh install: remove the preference
+    [defaults removeObjectForKey:@"htmlMermaid"];
+
+    MPPreferences *prefs = [[MPPreferences alloc] init];
+
+    XCTAssertTrue(prefs.htmlMermaid,
+                  @"Mermaid should be enabled by default for fresh installs");
+
+    // Restore original value
+    if (originalMermaid)
+        [defaults setObject:originalMermaid forKey:@"htmlMermaid"];
+    else
+        [defaults removeObjectForKey:@"htmlMermaid"];
+}
+
+/**
+ * Test that an explicit user choice to disable Mermaid is preserved:
+ * loadDefaultUserDefaults must not flip a stored NO back on.
+ */
+- (void)testMermaidExplicitDisableIsPreserved
+{
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+
+    NSNumber *originalMermaid = [defaults objectForKey:@"htmlMermaid"];
+
+    [defaults setBool:NO forKey:@"htmlMermaid"];
+
+    MPPreferences *prefs = [[MPPreferences alloc] init];
+
+    XCTAssertFalse(prefs.htmlMermaid,
+                   @"Explicitly disabled Mermaid must stay disabled");
+
+    // Restore original value
+    if (originalMermaid)
+        [defaults setObject:originalMermaid forKey:@"htmlMermaid"];
+    else
+        [defaults removeObjectForKey:@"htmlMermaid"];
+}
+
+/**
  * Test that checkbox migration applies to existing users who haven't set a preference.
  * Related to GitHub issue #269.
  */

@@ -455,6 +455,10 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
         self.editorAutoSave = YES;
     if (![defaults objectForKey:@"htmlHideHorizontalRules"])
         self.htmlHideHorizontalRules = NO;
+    // Mermaid diagrams on by default, but only when the user never chose:
+    // an explicit NO stays NO.
+    if (![defaults objectForKey:@"htmlMermaid"])
+        self.htmlMermaid = YES;
 
     // Defensive default for document zoom level. Migration v6 also handles
     // this, but this branch protects against any path that bypasses the
