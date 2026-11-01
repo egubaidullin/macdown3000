@@ -11,7 +11,7 @@ Visit the [project website](https://schuyler.github.io/macdown3000/) for more in
 
 In 2026, there's still a need for a modern, lightweight Markdown editor for macOS with live preview capabilities. MacDown 3000 is essentially *MacDown Continued*. The focus is on keeping MacDown up to date with modern Markdown best practices and maintaining compatibility with current library dependencies.
 
-MacDown 3000 supports macOS 11.0 (Big Sur) and later on both Apple Silicon and Intel Macs.
+MacDown 3000 supports macOS 12.0 (Monterey) and later on both Apple Silicon and Intel Macs.
 
 This project honors the original intentions and contributions of both Mou and MacDown while ensuring that this valuable tool remains available and actively maintained for today's Mac users.
 
@@ -33,7 +33,7 @@ Download the latest release from the [GitHub Releases](https://github.com/schuyl
 
 ### System Requirements
 
-- macOS 11.0 (Big Sur) or later
+- macOS 12.0 (Monterey) or later
 - Universal binary supporting both:
   - Apple Silicon (M-series processors)
   - Intel x86_64 processors
@@ -79,7 +79,7 @@ Open an entire folder as a workspace with `macdown .` from the terminal or via *
 
 If you wish to build MacDown 3000 yourself, you will need the following components/tools:
 
-* macOS SDK (11.0 or later)
+* macOS SDK (12.0 or later)
 * Git
 * [Bundler](http://bundler.io)
 
