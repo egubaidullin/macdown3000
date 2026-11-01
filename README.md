@@ -1,48 +1,53 @@
-# MacDown 3000
+# MacDown 3000 — Pele Edition
 
-[![Tests](https://github.com/schuyler/macdown3000/workflows/Tests/badge.svg)](https://github.com/schuyler/macdown3000/actions)
-[![Downloads](https://img.shields.io/github/downloads/schuyler/macdown3000/total)](https://github.com/schuyler/macdown3000/releases)
+A fork of [schuyler/macdown3000](https://github.com/schuyler/macdown3000) that renders
+` ```mermaid ` diagram blocks with [Pele](https://github.com/obsidianmd/pele) (MIT, by the
+Obsidian team) instead of Mermaid 11. No changes to your documents are needed:
+Pele understands Mermaid syntax (flowchart, sequence, class, gantt, pie, and more).
 
-MacDown 3000 is a free Markdown editor for macOS, available under the MIT License. It continues the legacy started by Chen Luo's [Mou](http://25.io/mou/) and carried forward by Tzu-ping Chung's [MacDown](https://macdown.uranusjr.com).
-
-Visit the [project website](https://schuyler.github.io/macdown3000/) for more information, or download from the [releases](https://github.com/schuyler/macdown3000/releases) page.
-
-## About MacDown 3000
-
-In 2026, there's still a need for a modern, lightweight Markdown editor for macOS with live preview capabilities. MacDown 3000 is essentially *MacDown Continued*. The focus is on keeping MacDown up to date with modern Markdown best practices and maintaining compatibility with current library dependencies.
-
-MacDown 3000 supports macOS 12.0 (Monterey) and later on both Apple Silicon and Intel Macs.
-
-This project honors the original intentions and contributions of both Mou and MacDown while ensuring that this valuable tool remains available and actively maintained for today's Mac users.
+Why Pele: a smaller (0.7 MB vs 3.5 MB), actively maintained engine with CSS-variable
+theming and a simple render API — replacing Mermaid-specific workarounds with
+caching, error blocks, and light/dark preview themes.
 
 ## Download & Install
 
-**Version 3000.0.7** - Available Now
+Download `MacDown-3000-Pele.dmg` from the
+[releases page](https://github.com/egubaidullin/macdown3000/releases), open it,
+and drag the app to your Applications folder.
 
-### Homebrew
-
-The easiest way to install MacDown 3000 is with [Homebrew](https://brew.sh):
-
-```bash
-brew install --cask macdown-3000
-```
-
-### Manual Download
-
-Download the latest release from the [GitHub Releases](https://github.com/schuyler/macdown3000/releases) page. Open the DMG file and drag MacDown 3000 to your Applications folder.
+- Coexists with stock MacDown 3000 in /Applications under its own name, but note:
+  both apps share the same preferences (same application ID), so settings changed
+  in one are visible in the other.
+- The build is **unsigned and unnotarized** (no Apple developer certificate):
+  first launch with right-click → “Open” → confirm.
+- Diagrams are enabled by default (Preferences → Rendering → Mermaid).
 
 ### System Requirements
 
 - macOS 12.0 (Monterey) or later
-- Universal binary supporting both:
-  - Apple Silicon (M-series processors)
-  - Intel x86_64 processors
+- Apple Silicon or Intel (universal binary)
+
+> Note: `brew install --cask macdown-3000` installs the *original* MacDown 3000,
+> not this edition. Use the DMG above.
 
 ## Screenshot
 
 ![screenshot](assets/screenshot.png)
 
 ## Features
+
+Everything from the original, plus:
+
+### Diagram Rendering (Pele)
+
+` ```mermaid ` fenced blocks render as SVG diagrams in live preview:
+
+- **Many diagram types**: flowchart, sequence, class, gantt, pie, and more
+- **On by default**, with per-user opt-out in Preferences → Rendering
+- **No flicker while typing**: results are cached by source hash
+- **Invalid diagrams** show a red block with the error and the offending source
+- **Light/dark themes**: diagram colors follow the preview style
+- Diagrams are included in **HTML export** and **PDF printing**; works fully offline
 
 ### Live Preview & Markdown Rendering
 
@@ -77,34 +82,41 @@ Open an entire folder as a workspace with `macdown .` from the terminal or via *
 
 ### Requirements
 
-If you wish to build MacDown 3000 yourself, you will need the following components/tools:
-
-* macOS SDK (12.0 or later)
-* Git
-* [Bundler](http://bundler.io)
+- macOS with Xcode 27.2 or later (macOS SDK 12.0+)
+- Git
+- A modern Ruby via Homebrew (system Ruby 2.6 **cannot** satisfy the bundle):
+  `brew install ruby`, then put `/opt/homebrew/opt/ruby/bin` first on `PATH`
+- [Bundler](http://bundler.io) 2.7.2 (see `Gemfile.lock`)
 
 > Note: Old versions of CocoaPods are not supported. Please use Bundler to execute CocoaPods, or make sure your CocoaPods is later than shown in `Gemfile.lock`.
 
-> Note: The Command Line Tools (CLT) should be unnecessary. If you failed to compile without it, please install CLT with
->
->     xcode-select --install
->
-> and report back.
-
-An appropriate SDK should be bundled with recent versions of Xcode.
-
 ### Environment Setup
 
-After cloning the repository, run the following commands inside the repository root (directory containing this `README.md` file):
+```bash
+git clone --recurse-submodules https://github.com/egubaidullin/macdown3000.git
+cd macdown3000
+git checkout feat/mermaid-pele
+export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+bundle install
+bundle exec pod install
+```
 
-    git submodule update --init
-    bundle install
-    bundle exec pod install
-    make -C Dependency/peg-markdown-highlight
+Then open `MacDown 3000.xcworkspace` in Xcode, or build from the terminal
+(`CODE_SIGNING_ALLOWED=NO` is required — there is no signing certificate):
 
-and open `MacDown 3000.xcworkspace` in Xcode. The first command initialises the dependency submodule(s) used in MacDown 3000; the second one installs dependencies managed by CocoaPods.
+```bash
+# Build
+xcodebuild -workspace "MacDown 3000.xcworkspace" -scheme MacDown \
+  -configuration Debug -destination 'platform=macOS,arch=arm64' \
+  CODE_SIGNING_ALLOWED=NO build
 
-Refer to the official guides of Git and CocoaPods if you need more instructions. If you run into build issues later on, try running the following commands to update dependencies:
+# Tests (runs MacDownTests)
+xcodebuild -workspace "MacDown 3000.xcworkspace" -scheme MacDown \
+  -configuration Debug -destination 'platform=macOS,arch=arm64' \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+If you run into build issues later on, try updating dependencies:
 
     git submodule update
     bundle exec pod install
@@ -113,7 +125,7 @@ Refer to the official guides of Git and CocoaPods if you need more instructions.
 
 MacDown 3000 is released under the terms of MIT License. You may find the content of the license [on opensource.org](http://opensource.org/licenses/MIT), or inside the `LICENSE` directory.
 
-You may find full text of licenses about third-party components in the `LICENSE` directory, or the **About MacDown 3000** panel in the application.
+You may find full text of licenses about third-party components in the `LICENSE` directory, or the **About MacDown 3000** panel in the application. Diagram rendering uses [Pele](https://github.com/obsidianmd/pele) (MIT, see `LICENSE/pele.txt`).
 
 The following editor themes and CSS files are extracted from [Mou](http://mouapp.com), courtesy of Chen Luo:
 
@@ -137,12 +149,6 @@ The following editor themes and CSS files are extracted from [Mou](http://mouapp
 
 MacDown 3000 is Free Software under the MIT License. Contributions are welcome!
 
-Please [file an issue](https://github.com/schuyler/macdown3000/issues/new) on GitHub for bug reports, feature requests, or questions. **Please search first to make sure no-one has reported the same issue already** before opening one yourself.
+Please [file an issue](https://github.com/egubaidullin/macdown3000/issues/new) on GitHub for bug reports, feature requests, or questions. **Please search first to make sure no-one has reported the same issue already** before opening one yourself.
 
-MacDown 3000 depends on other open source projects, such as [Hoedown](https://github.com/hoedown/hoedown) for Markdown-to-HTML rendering, [Prism](http://prismjs.com) for syntax highlighting (in code blocks), [Pele](https://github.com/obsidianmd/pele) for diagram rendering, and [PEG Markdown Highlight](https://github.com/ali-rantakari/peg-markdown-highlight) for editor highlighting. If you find problems when using those particular features, you can also consider reporting them directly to upstream projects as well as to MacDown 3000's issue tracker.
-
-## Support MacDown 3000
-
-Donations help cover the cost of the Apple developer license ($99/year). Any proceeds beyond our maintenance costs will be donated to the [Signal Foundation](https://signal.org/donate/).
-
-[Donate via PayPal](https://www.paypal.com/donate/?business=22WG7CGNSSF8C&no_recurring=0&amount=5&item_name=Thank+you+for+supporting+MacDown+3000.+Once+our+maintenance+costs+are+covered%2C+further+donations+will+go+the+Signal+Foundation.&currency_code=USD)
+This edition depends on other open source projects, such as [Hoedown](https://github.com/hoedown/hoedown) for Markdown-to-HTML rendering, [Prism](http://prismjs.com) for syntax highlighting (in code blocks), [Pele](https://github.com/obsidianmd/pele) for diagram rendering, and [PEG Markdown Highlight](https://github.com/ali-rantakari/peg-markdown-highlight) for editor highlighting. The upstream project lives at [schuyler/macdown3000](https://github.com/schuyler/macdown3000) — please report non-diagram issues there when they reproduce on the original.
