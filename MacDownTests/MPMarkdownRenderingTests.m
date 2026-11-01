@@ -223,6 +223,18 @@
              rendererFlags:rendFlags];
 }
 
+- (void)testPeleDiagramsGolden
+{
+    // Mermaid fenced blocks keep their source and language-mermaid class;
+    // Pele renders them client-side, so the golden file holds code, not SVG.
+    int extFlags = HOEDOWN_EXT_FENCED_CODE;
+    int rendFlags = 0;
+
+    [self verifyGoldenFile:@"pele-diagrams"
+            withExtensions:extFlags
+             rendererFlags:rendFlags];
+}
+
 #pragma mark - List Tests
 
 - (void)testListsUnordered

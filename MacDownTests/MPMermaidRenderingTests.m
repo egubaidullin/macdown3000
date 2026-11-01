@@ -650,4 +650,49 @@ static BOOL MPPeleSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
                   wrapperStyle);
 }
 
+// The self-contained HTML export (all scripts inlined) must render every
+// diagram type in the pele-diagrams fixture when opened in a WebView.
+- (void)testExportedHTMLRendersAllDiagramTypes
+{
+    NSURL *fixtureURL = [[NSBundle bundleForClass:[self class]]
+        URLForResource:@"pele-diagrams" withExtension:@"md"
+         subdirectory:@"Fixtures"];
+    XCTAssertNotNil(fixtureURL, @"pele-diagrams.md fixture is missing");
+    if (!fixtureURL)
+        return;
+    NSString *markdown = [NSString stringWithContentsOfURL:fixtureURL
+                                                  encoding:NSUTF8StringEncoding
+                                                     error:NULL];
+    XCTAssertNotNil(markdown);
+
+    self.delegate.extensions = HOEDOWN_EXT_FENCED_CODE;
+    self.delegate.mermaid = YES;
+    [self.renderer parseMarkdown:markdown];
+    NSString *html =
+        [self.renderer HTMLForExportWithStyles:YES highlighting:NO];
+    XCTAssertNotNil(html);
+
+    NSWindow *window = [[NSWindow alloc]
+        initWithContentRect:NSMakeRect(0, 0, 800, 600)
+                  styleMask:NSWindowStyleMaskBorderless
+                    backing:NSBackingStoreBuffered defer:NO];
+    window.releasedWhenClosed = NO;  // ARC owns the window.
+    WebView *webView = [[WebView alloc]
+        initWithFrame:NSMakeRect(0, 0, 800, 600)];
+    window.contentView = webView;
+
+    [webView.mainFrame loadHTMLString:html baseURL:nil];
+    BOOL rendered = MPPeleSpinUntil(30.0, ^{
+        return (BOOL)(!webView.isLoading && [[webView
+            stringByEvaluatingJavaScriptFromString:
+                @"String(document.querySelectorAll('svg').length)"]
+            isEqualToString:@"5"]);
+    });
+
+    [webView close];
+    [window close];
+
+    XCTAssertTrue(rendered, @"Exported HTML should render all 5 diagrams");
+}
+
 @end
