@@ -17,7 +17,7 @@
 
 
 // Substring proving Prism was NOT embedded. Confirmed absent from the
-// bundled diagram assets (mermaid.min.js, mermaid.init.js, viz.js,
+// bundled diagram assets (pele.global.js, pele.init.js, viz.js,
 // viz.init.js), so a false absence-check pass can't come from a diagram
 // script instead of real Prism content. Only ever asserted as ABSENT: the
 // Prism submodule may not be checked out in this environment, so its real
@@ -700,8 +700,8 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
         [self.renderer HTMLForExportWithStyles:YES highlighting:NO];
 
     XCTAssertNotNil(html, @"Should handle Mermaid diagrams");
-    XCTAssertTrue([html containsString:@"mermaid.initialize("],
-                  @"Mermaid init script should be embedded in exports even "
+    XCTAssertTrue([html containsString:@"pele.render("],
+                  @"Pele init script should be embedded in exports even "
                   @"when highlighting is off (issue #541)");
     XCTAssertFalse([html containsString:kMPTestPrismAbsenceMarker],
                    @"Prism should not be embedded when highlighting is off");
@@ -726,8 +726,8 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
                   @"when highlighting is off (issue #541)");
     XCTAssertFalse([html containsString:kMPTestPrismAbsenceMarker],
                    @"Prism should not be embedded when highlighting is off");
-    XCTAssertFalse([html containsString:@"mermaid.initialize("],
-                   @"Mermaid script should not be embedded when only "
+    XCTAssertFalse([html containsString:@"pele.render("],
+                   @"Pele script should not be embedded when only "
                    @"Graphviz is enabled");
 }
 
@@ -743,8 +743,8 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
     NSString *html =
         [self.renderer HTMLForExportWithStyles:YES highlighting:NO];
 
-    XCTAssertTrue([html containsString:@"mermaid.initialize("],
-                  @"Mermaid init script should be embedded when both "
+    XCTAssertTrue([html containsString:@"pele.render("],
+                  @"Pele init script should be embedded when both "
                   @"diagram types are enabled and highlighting is off");
     XCTAssertTrue([html containsString:@"function doGraphviz(engine) {"],
                   @"Graphviz init script should be embedded when both "
@@ -762,10 +762,10 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
         [self.renderer HTMLForExportWithStyles:YES highlighting:YES];
 
     XCTAssertEqual(
-        [self mp_occurrencesOfSubstring:@"mermaid.initialize("
+        [self mp_occurrencesOfSubstring:@"pele.render("
                                inString:html],
         (NSUInteger)1,
-        @"Mermaid init script should be embedded exactly once when "
+        @"Pele init script should be embedded exactly once when "
         @"highlighting is also on, guarding against double inclusion");
 }
 
@@ -782,10 +782,10 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
         [self.renderer HTMLForExportWithStyles:YES highlighting:YES];
 
     XCTAssertEqual(
-        [self mp_occurrencesOfSubstring:@"mermaid.initialize("
+        [self mp_occurrencesOfSubstring:@"pele.render("
                                inString:html],
         (NSUInteger)1,
-        @"Mermaid init script should appear exactly once");
+        @"Pele init script should appear exactly once");
     XCTAssertEqual(
         [self mp_occurrencesOfSubstring:@"function doGraphviz(engine) {"
                                inString:html],
@@ -805,8 +805,8 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
     NSString *html =
         [self.renderer HTMLForExportWithStyles:YES highlighting:NO];
 
-    XCTAssertFalse([html containsString:@"mermaid.initialize("],
-                   @"Mermaid script should not be embedded when Mermaid is "
+    XCTAssertFalse([html containsString:@"pele.render("],
+                   @"Pele script should not be embedded when Mermaid is "
                    @"disabled");
     XCTAssertFalse([html containsString:@"function doGraphviz(engine) {"],
                    @"Graphviz script should not be embedded when Graphviz "
@@ -822,8 +822,8 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
     [self.renderer parseMarkdown:self.dataSource.markdown];
     NSString *html = [self.renderer HTMLForExportWithStyles:NO highlighting:NO];
 
-    XCTAssertTrue([html containsString:@"mermaid.initialize("],
-                  @"Mermaid init script should be embedded independent of "
+    XCTAssertTrue([html containsString:@"pele.render("],
+                  @"Pele init script should be embedded independent of "
                   @"the withStyles option");
 }
 
@@ -853,8 +853,8 @@ static NSString * const kMPTestPrismAbsenceMarker = @"Prism.highlightAll";
     NSString *html =
         [self.renderer HTMLForExportWithStyles:YES highlighting:NO];
 
-    XCTAssertTrue([html containsString:@"mermaid.initialize("],
-                  @"Mermaid init script should be embedded even when "
+    XCTAssertTrue([html containsString:@"pele.render("],
+                  @"Pele init script should be embedded even when "
                   @"MathJax is also enabled and highlighting is off");
     XCTAssertTrue([html containsString:@"MathJax.Hub.Config("],
                   @"MathJax init script should still be embedded alongside "

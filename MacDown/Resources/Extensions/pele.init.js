@@ -1,33 +1,22 @@
-// init mermaid
-// Updated for Mermaid 11.x (GitHub issue #35)
-// MutationObserver for DOM replacement re-rendering (GitHub issue #331)
+// init pele (Pele 1.13.0, MIT)
+// Renders pre>code.language-mermaid blocks via pele.render and
+// replaces each <pre> with the resulting SVG. Mirrors the structure of
+// the former mermaid.init.js, including the MutationObserver for DOM
+// replacement re-rendering (GitHub issue #331).
 
 (function () {
 
-  // Check if mermaid library is loaded
-  if (typeof mermaid === 'undefined') {
-    console.warn('Mermaid library not loaded');
+  // Check if Pele library is loaded. Note: the UMD global build exposes
+  // the synchronous render/mount API from core (not the renderAsync of the
+  // ESM lazy entry point).
+  if (typeof pele === 'undefined' || typeof pele.render !== 'function') {
+    console.warn('Pele library not loaded');
     return;
   }
 
-  // Use 'forest' theme via API instead of external CSS to fix gantt rendering
-  // issues (GitHub issue #18). Mermaid 8.0+ requires theme-based configuration.
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: 'forest',
-    // Root-level, because Mermaid 11's node-label code ignores the deprecated
-    // flowchart.htmlLabels (GitHub issue #35). HTML labels are sized from
-    // getBoundingClientRect(), which disagrees with SVG units when the
-    // preview is zoomed, and the text is clipped; SVG text labels are not.
-    htmlLabels: false,
-    flowchart: {
-      useMaxWidth: true
-    },
-    securityLevel: 'antiscript',
-    logLevel: 'error'
-  });
-
-  // Generate unique ID to avoid collisions on re-renders
+  // Generate unique ID to avoid collisions on re-renders.
+  // The 'mermaid_' prefix is kept so existing CSS (export.css) and tests
+  // that match svg[id^="mermaid_"] keep working.
   var renderCount = 0;
   var sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 
@@ -55,13 +44,10 @@
 
         // The <code> element is always inside a <pre>. Replace the <pre>
         // directly using outerHTML so that sibling <pre> elements (other
-        // diagrams in the same document) are not destroyed. The old code
-        // navigated to parentElement.parentElement and set innerHTML on the
-        // shared wrapper, which removed all subsequent diagrams from the DOM
-        // on the first iteration (GitHub issue #331).
+        // diagrams in the same document) are not destroyed (GitHub issue #331).
         var pre = codeElement.parentElement;
         if (!pre || pre.tagName !== "PRE") {
-          console.warn('Mermaid: unexpected DOM structure, skipping element');
+          console.warn('Pele: unexpected DOM structure, skipping element');
           codeElement.classList.remove('language-mermaid');
           continue;
         }
@@ -70,15 +56,17 @@
         var uniqueId = 'mermaid_' + sessionId + '_' + (renderCount++);
 
         try {
-          // Mermaid 11.x uses Promise-based API
-          var result = await mermaid.render(uniqueId, graphSource);
+          // Pele's render returns { svg, width, height, ... } (awaited for
+          // safety; a plain value simply passes through).
+          var result = await pele.render(graphSource, { idPrefix: uniqueId });
           if (document.body.contains(pre)) pre.outerHTML = result.svg;
         } catch (error) {
-          console.error('Mermaid rendering error:', error);
-          // Display error message in place of the <pre>
+          console.error('Pele rendering error:', error);
+          // Display error message in place of the <pre>. textContent only:
+          // never innerHTML, so a hostile diagram source cannot inject markup.
           var errorElement = document.createElement('pre');
           errorElement.style.cssText = 'color: red; padding: 10px; background: #fee;';
-          errorElement.textContent = 'Mermaid Error: ' + (error.message || error);
+          errorElement.textContent = 'Pele Error: ' + (error.message || error);
           if (document.body.contains(pre) && pre.parentNode) pre.parentNode.replaceChild(errorElement, pre);
         }
       }

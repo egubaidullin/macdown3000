@@ -337,8 +337,8 @@
 
     XCTAssertTrue([self.delegate.lastHTML containsString:@"viz.init.js"],
                   @"Should include graphviz init script");
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.init.js"],
-                  @"Should include mermaid init script alongside graphviz");
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.init.js"],
+                  @"Should include Pele init script alongside graphviz");
 }
 
 - (void)testGraphvizAndMermaidScriptsIncludedWhenSyntaxHighlightingDisabled
@@ -361,11 +361,11 @@
     XCTAssertTrue([self.delegate.lastHTML containsString:@"viz.init.js"],
                   @"Should include Graphviz init script even without "
                   @"syntax highlighting");
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.min.js"],
-                  @"Should include Mermaid library even without syntax "
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.global.js"],
+                  @"Should include Pele library even without syntax "
                   @"highlighting");
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.init.js"],
-                  @"Should include Mermaid init script even without "
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.init.js"],
+                  @"Should include Pele init script even without "
                   @"syntax highlighting");
 }
 

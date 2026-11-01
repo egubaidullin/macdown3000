@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-// Exercise our DOM adapter with a controlled renderer rejection. Mermaid
+// Exercise our DOM adapter with a controlled renderer rejection. Pele
 // itself is deliberately not mocked as a security guarantee for its SVGs.
 (async function () {
   let onLoad;
@@ -25,16 +25,16 @@ const vm = require('node:vm');
     },
     window: { addEventListener: (event, callback) => { onLoad = callback; } },
     console: { warn() {}, error() {} },
-    mermaid: { initialize() {}, async render() { throw new Error(message); } }
+    pele: { render() { throw new Error(message); } }
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,
-    '../../MacDown/Resources/Extensions/mermaid.init.js'), 'utf8'), context);
+    '../../MacDown/Resources/Extensions/pele.init.js'), 'utf8'), context);
   await onLoad();
   assert.equal(replacement.tagName, 'pre');
-  assert.equal(replacement.textContent, 'Mermaid Error: ' + message);
+  assert.equal(replacement.textContent, 'Pele Error: ' + message);
   assert.equal(replacement.innerHTML, undefined);
   assert.equal(pre.outerHTML, undefined);
-  process.stdout.write('Mermaid error text boundary: passed\n');
+  process.stdout.write('Pele error text boundary: passed\n');
 })().catch(error => { console.error(error); process.exitCode = 1; });
 
 (async function () {
@@ -58,9 +58,8 @@ const vm = require('node:vm');
       constructor(callback) { onMutation = callback; }
       observe() {}
     },
-    mermaid: {
-      initialize() {},
-      render(id, source) {
+    pele: {
+      render(source) {
         rendered.push(source);
         if (source === 'old graph') return new Promise(resolve => { resolveOld = resolve; });
         code = null;
@@ -69,7 +68,7 @@ const vm = require('node:vm');
     }
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,
-    '../../MacDown/Resources/Extensions/mermaid.init.js'), 'utf8'), context);
+    '../../MacDown/Resources/Extensions/pele.init.js'), 'utf8'), context);
   const oldRender = onLoad();
   currentPre = newPre;
   code = { textContent: 'new graph', parentElement: newPre };
@@ -81,5 +80,5 @@ const vm = require('node:vm');
   await scheduled();
   assert.deepEqual(rendered, ['old graph', 'new graph']);
   assert.equal(newPre.outerHTML, '<svg>new graph</svg>');
-  process.stdout.write('Mermaid replaced DOM during pending render: passed\n');
+  process.stdout.write('Pele replaced DOM during pending render: passed\n');
 })().catch(error => { console.error(error); process.exitCode = 1; });

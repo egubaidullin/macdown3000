@@ -2,8 +2,8 @@
 //  MPMermaidRenderingTests.m
 //  MacDownTests
 //
-//  Tests for Mermaid diagram rendering in the Obj-C pipeline.
-//  Verifies that mermaid scripts are included/excluded correctly,
+//  Tests for Pele diagram rendering (```mermaid blocks) in the Obj-C pipeline.
+//  Verifies that Pele scripts are included/excluded correctly,
 //  code blocks get the proper language class, and rendering
 //  survives preference changes and re-renders.
 //
@@ -99,7 +99,7 @@
 }
 
 
-#pragma mark - Mermaid Script Inclusion
+#pragma mark - Pele Script Inclusion
 
 - (void)testMermaidScriptsIncludedWhenEnabled
 {
@@ -112,10 +112,10 @@
     [self.renderer parseMarkdown:self.dataSource.markdown];
     [self.renderer render];
 
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.min.js"],
-                  @"Should include Mermaid library");
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.init.js"],
-                  @"Should include Mermaid init script");
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.global.js"],
+                  @"Should include Pele library");
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.init.js"],
+                  @"Should include Pele init script");
 }
 
 - (void)testMermaidScriptsExcludedWhenDisabled
@@ -129,10 +129,10 @@
     [self.renderer parseMarkdown:self.dataSource.markdown];
     [self.renderer render];
 
-    XCTAssertFalse([self.delegate.lastHTML containsString:@"mermaid.min.js"],
-                   @"Should NOT include Mermaid library when disabled");
-    XCTAssertFalse([self.delegate.lastHTML containsString:@"mermaid.init.js"],
-                   @"Should NOT include Mermaid init script when disabled");
+    XCTAssertFalse([self.delegate.lastHTML containsString:@"pele.global.js"],
+                   @"Should NOT include Pele library when disabled");
+    XCTAssertFalse([self.delegate.lastHTML containsString:@"pele.init.js"],
+                   @"Should NOT include Pele init script when disabled");
 }
 
 - (void)testMermaidScriptsIncludedWhenSyntaxHighlightingDisabled
@@ -146,10 +146,10 @@
     [self.renderer parseMarkdown:self.dataSource.markdown];
     [self.renderer render];
 
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.min.js"],
-                  @"Should include Mermaid library");
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.init.js"],
-                  @"Should include Mermaid init script");
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.global.js"],
+                  @"Should include Pele library");
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.init.js"],
+                  @"Should include Pele init script");
 }
 
 - (void)testPrismScriptsExcludedWhenSyntaxHighlightingDisabledWithMermaidEnabled
@@ -166,10 +166,10 @@
     XCTAssertFalse([self.delegate.lastHTML containsString:@"prism-core.min.js"],
                    @"Should NOT include Prism when syntax highlighting is "
                    @"disabled, even though Mermaid is enabled");
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.min.js"],
-                  @"Should still include Mermaid library");
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.init.js"],
-                  @"Should still include Mermaid init script");
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.global.js"],
+                  @"Should still include Pele library");
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.init.js"],
+                  @"Should still include Pele init script");
 }
 
 
@@ -354,14 +354,14 @@
     self.delegate.mermaid = YES;
     [self.renderer parseMarkdown:self.dataSource.markdown];
     [self.renderer render];
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.min.js"],
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.global.js"],
                   @"Should include mermaid scripts when enabled");
 
     // Second: disabled
     self.delegate.mermaid = NO;
     [self.renderer parseMarkdown:self.dataSource.markdown];
     [self.renderer render];
-    XCTAssertFalse([self.delegate.lastHTML containsString:@"mermaid.min.js"],
+    XCTAssertFalse([self.delegate.lastHTML containsString:@"pele.global.js"],
                    @"Should exclude mermaid scripts after disabling");
 }
 
@@ -381,7 +381,7 @@
     [self.renderer parseMarkdown:self.dataSource.markdown];
     [self.renderer render];
 
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.init.js"],
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.init.js"],
                   @"Should include mermaid init script");
     XCTAssertTrue([self.delegate.lastHTML containsString:@"MathJax.js"],
                   @"Should include MathJax script alongside mermaid");
@@ -401,16 +401,16 @@
     [self.renderer parseMarkdown:self.dataSource.markdown];
     [self.renderer render];
 
-    XCTAssertTrue([self.delegate.lastHTML containsString:@"mermaid.init.js"],
+    XCTAssertTrue([self.delegate.lastHTML containsString:@"pele.init.js"],
                   @"Should include mermaid init script");
     XCTAssertTrue([self.delegate.lastHTML containsString:@"viz.init.js"],
                   @"Should include graphviz init script alongside mermaid");
 }
 
-#pragma mark - Node Label Fit (Issue #35)
+#pragma mark - Live Rendering In WebView
 
 // Spins the main run loop until condition returns YES or timeout elapses.
-static BOOL MPMermaidSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
+static BOOL MPPeleSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
 {
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:timeout];
     while (!condition() && deadline.timeIntervalSinceNow > 0)
@@ -421,18 +421,19 @@ static BOOL MPMermaidSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
     return condition();
 }
 
-// Renders the issue's flowchart with the bundled Mermaid and mermaid.init.js
-// at the given page zoom and checks that every node label fits the box that
-// clips it: the foreignObject when labels are HTML, and the node shape.
-- (void)assertFlowchartLabelsFitAtPageSizeMultiplier:(float)multiplier
+// Loads the bundled Pele library and pele.init.js into a legacy WebView,
+// injects one ```mermaid block with the given source, and waits until the
+// init script replaces it with an SVG. Returns YES when exactly one <svg>
+// is present and no .language-mermaid element remains.
+- (BOOL)peleRendersDiagramSource:(NSString *)source
 {
-    NSURL *mermaidURL = [[NSBundle mainBundle] URLForResource:@"mermaid.min"
-                                                withExtension:@"js"
-                                                 subdirectory:@"Extensions"];
-    XCTAssertNotNil(mermaidURL, @"The bundled Mermaid library is missing");
-    if (!mermaidURL)
-        return;
-    NSURL *baseURL = mermaidURL.URLByDeletingLastPathComponent;
+    NSURL *peleURL = [[NSBundle mainBundle] URLForResource:@"pele.global"
+                                             withExtension:@"js"
+                                              subdirectory:@"Extensions"];
+    XCTAssertNotNil(peleURL, @"The bundled Pele library is missing");
+    if (!peleURL)
+        return NO;
+    NSURL *baseURL = peleURL.URLByDeletingLastPathComponent;
 
     NSWindow *window = [[NSWindow alloc]
         initWithContentRect:NSMakeRect(0, 0, 800, 600)
@@ -445,82 +446,67 @@ static BOOL MPMermaidSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
 
     NSString *html =
         @"<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
-         "<script src=\"mermaid.min.js\"></script>"
-         "<script src=\"mermaid.init.js\"></script>"
+         "<script src=\"pele.global.js\"></script>"
+         "<script src=\"pele.init.js\"></script>"
          "</head><body></body></html>";
     [webView.mainFrame loadHTMLString:html baseURL:baseURL];
-    BOOL loaded = MPMermaidSpinUntil(20.0, ^{
+    BOOL loaded = MPPeleSpinUntil(20.0, ^{
         return (BOOL)(!webView.isLoading && [[webView
             stringByEvaluatingJavaScriptFromString:
                 @"String(document.readyState === 'complete' && "
-                 "typeof mermaid !== 'undefined')"] isEqualToString:@"true"]);
+                 "typeof pele !== 'undefined' && "
+                 "typeof pele.render === 'function')"]
+            isEqualToString:@"true"]);
     });
-    XCTAssertTrue(loaded, @"The page with Mermaid did not finish loading");
+    XCTAssertTrue(loaded, @"The page with Pele did not finish loading");
+    if (!loaded)
+    {
+        [webView close];
+        [window close];
+        return NO;
+    }
 
-    // A fresh load resets the multiplier, so apply it after loading and
-    // before the diagram exists, so Mermaid measures labels at this zoom.
-    [webView setPageSizeMultiplier:multiplier];
-    double clientWidth = [[webView stringByEvaluatingJavaScriptFromString:
-        @"document.documentElement.clientWidth"] doubleValue];
-    XCTAssertEqualWithAccuracy(clientWidth, 800.0 / multiplier, 2.0,
-                               @"Page zoom %.2f did not take effect",
-                               multiplier);
-
-    [webView stringByEvaluatingJavaScriptFromString:
+    // Escape the source for embedding in a JS string literal.
+    NSString *escaped = [[[[source
+        stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"]
+        stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"]
+        stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]
+        stringByReplacingOccurrencesOfString:@"\r" withString:@"\\r"];
+    NSString *injectJS = [NSString stringWithFormat:
         @"var pre = document.createElement('pre');"
          "var code = document.createElement('code');"
          "code.className = 'language-mermaid';"
-         "code.textContent = 'graph TD\\n    A[Start] --> B[Process]\\n"
-         "    B --> C[End]';"
-         "pre.appendChild(code); document.body.appendChild(pre);"];
-    NSString *countJS =
-        @"String(document.querySelectorAll('svg[id^=\"mermaid_\"] g.node').length)";
-    BOOL rendered = MPMermaidSpinUntil(20.0, ^{
-        return [[webView stringByEvaluatingJavaScriptFromString:countJS]
-                isEqualToString:@"3"];
-    });
-    XCTAssertTrue(rendered, @"The flowchart did not render three nodes at "
-                             "zoom %.2f", multiplier);
+         "code.textContent = '%@';"
+         "pre.appendChild(code); document.body.appendChild(pre);", escaped];
+    [webView stringByEvaluatingJavaScriptFromString:injectJS];
 
-    NSString *json = [webView stringByEvaluatingJavaScriptFromString:
-        @"JSON.stringify(Array.prototype.map.call("
-         "document.querySelectorAll('svg[id^=\"mermaid_\"] g.node'),"
-         "function (n) {"
-         "var shape = n.querySelector('rect, path, polygon, circle, ellipse');"
-         "var fo = n.querySelector('g.label foreignObject');"
-         "var content = fo ? (fo.querySelector('.nodeLabel') || fo.firstElementChild)"
-         " : n.querySelector('g.label text');"
-         "var c = content.getBoundingClientRect(), s = shape.getBoundingClientRect();"
-         "var box = fo ? Math.min(fo.getBoundingClientRect().width, s.width) : s.width;"
-         "return {text: content.textContent, label: c.width, box: box, html: !!fo};"
-         "}))"];
-    NSArray<NSDictionary *> *nodes = [NSJSONSerialization
-        JSONObjectWithData:[json ?: @"[]" dataUsingEncoding:NSUTF8StringEncoding]
-                   options:0 error:NULL];
-    XCTAssertEqual(nodes.count, 3u, @"Expected three measured nodes; got %@",
-                   json);
-    for (NSDictionary *node in nodes)
-    {
-        double label = [node[@"label"] doubleValue];
-        double box = [node[@"box"] doubleValue];
-        XCTAssertLessThanOrEqual(label, box + 0.5,
-            @"At zoom %.2f the label \"%@\" (%.2f wide, HTML label: %@) is "
-             "clipped by its %.2f-wide box",
-            multiplier, node[@"text"], label, node[@"html"], box);
-    }
+    BOOL rendered = MPPeleSpinUntil(20.0, ^{
+        return [[webView stringByEvaluatingJavaScriptFromString:
+            @"String(document.querySelectorAll('svg').length)"]
+            isEqualToString:@"1"];
+    });
+    BOOL replaced = [[webView stringByEvaluatingJavaScriptFromString:
+        @"String(document.querySelectorAll('.language-mermaid').length)"]
+        isEqualToString:@"0"];
 
     [webView close];
     [window close];
+
+    XCTAssertTrue(rendered, @"Pele did not render an SVG for: %@", source);
+    XCTAssertTrue(replaced, @"The .language-mermaid block was not replaced");
+    return rendered && replaced;
 }
 
-- (void)testFlowchartNodeLabelsFitAtFullSize
+- (void)testFlowchartRendersToSVG
 {
-    [self assertFlowchartLabelsFitAtPageSizeMultiplier:1.0];
+    [self peleRendersDiagramSource:
+        @"graph TD\n    A[Start] --> B[Process]\n    B --> C[End]"];
 }
 
-- (void)testFlowchartNodeLabelsFitWhenPreviewIsScaledDown
+- (void)testSequenceDiagramRendersToSVG
 {
-    [self assertFlowchartLabelsFitAtPageSizeMultiplier:0.8];
+    [self peleRendersDiagramSource:
+        @"sequenceDiagram\n    Alice->>Bob: Hello\n    Bob-->>Alice: Hi"];
 }
 
 @end

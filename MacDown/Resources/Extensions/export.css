@@ -122,9 +122,9 @@ body {
  * natural overflow behavior with horizontal scrolling.
  */
 
-/* Mermaid diagram full-width rendering (Issue #331)
- * Rendered Mermaid SVGs replace the original <pre><code> container.
- * The SVG id uses the 'mermaid_' prefix from mermaid.init.js.
+/* Diagram full-width rendering (Issue #331)
+ * Rendered diagram SVGs replace the original <pre><code> container.
+ * The SVG id uses the 'mermaid_' prefix from pele.init.js.
  */
 svg[id^="mermaid_"] {
     width: 100%;

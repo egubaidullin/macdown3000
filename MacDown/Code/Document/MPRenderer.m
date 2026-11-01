@@ -316,7 +316,7 @@ NS_INLINE BOOL MPAreNilableStringsEqual(NSString *s1, NSString *s2)
 @property (readonly) NSArray *prismStylesheets;
 @property (readonly) NSArray *prismScripts;
 @property (readonly) NSArray *mathjaxScripts;
-@property (readonly) NSArray *mermaidScripts;
+@property (readonly) NSArray *diagramScripts;
 @property (readonly) NSArray *graphvizScripts;
 @property (readonly) NSArray *stylesheets;
 @property (readonly) NSArray *scripts;
@@ -618,17 +618,16 @@ NS_INLINE NSString *MPPreviewHeadTags(NSString *checkboxBridgeToken)
     return scripts;
 }
 
-- (NSArray *)mermaidScripts
+- (NSArray *)diagramScripts
 {
-    // TODO
     NSMutableArray *scripts = [NSMutableArray array];
 
     {
-        NSURL *url = MPExtensionURL(@"mermaid.min", @"js");
+        NSURL *url = MPExtensionURL(@"pele.global", @"js");
         [scripts addObject:[MPScript javaScriptWithURL:url]];
     }
     {
-        NSURL *url = MPExtensionURL(@"mermaid.init", @"js");
+        NSURL *url = MPExtensionURL(@"pele.init", @"js");
         [scripts addObject:[MPScript javaScriptWithURL:url]];
     }
     
@@ -702,7 +701,7 @@ NS_INLINE NSString *MPPreviewHeadTags(NSString *checkboxBridgeToken)
     // even when syntax highlighting is off (GitHub issue #533).
     if ([d rendererHasMermaid:self])
     {
-        [scripts addObjectsFromArray:self.mermaidScripts];
+        [scripts addObjectsFromArray:self.diagramScripts];
     }
     if ([d rendererHasGraphviz:self])
     {
@@ -907,7 +906,7 @@ NS_INLINE NSString *MPPreviewHeadTags(NSString *checkboxBridgeToken)
     if ([self.delegate rendererHasMermaid:self])
     {
         scriptsOption = MPAssetEmbedded;
-        [scripts addObjectsFromArray:self.mermaidScripts];
+        [scripts addObjectsFromArray:self.diagramScripts];
     }
     if ([self.delegate rendererHasGraphviz:self])
     {
