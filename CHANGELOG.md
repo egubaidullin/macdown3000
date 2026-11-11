@@ -5,6 +5,7 @@
 ### Added
 
 - Render Mermaid diagram blocks with [Pele](https://github.com/obsidianmd/pele) (MIT) instead of Mermaid: vendored `pele.global.js` with caching, error blocks, and light/dark preview themes
+- Export to Word (.docx) in two variants: **Word (SVG)** keeps diagrams as vectors (with a PNG fallback for readers without SVG support) and **Word (compatible)** embeds PNG images; headings, lists, tables, code, links, quotes and images are preserved, and the document carries the file name in the header and page numbers in the footer
 
 ## [3000.0.7] - 2026-07-13
 

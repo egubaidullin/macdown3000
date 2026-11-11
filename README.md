@@ -66,7 +66,7 @@ Code blocks get syntax highlighting via Prism, supporting numerous programming a
 
 - **Math notation** using TeX-like syntax ($$...$$, \[...\], \(...\), and optional $...$ blocks)
 - **Jekyll front-matter** for static site generators
-- **Export to HTML or PDF** with customizable styling
+- **Export to HTML, PDF, or Word (.docx)**, with diagrams included in all three
 
 ### Folder Browsing
 
