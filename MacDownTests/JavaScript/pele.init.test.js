@@ -133,7 +133,8 @@ function makeElement(tag) {
         querySelectorAll: () => [code],
         createElement: makeElement
       },
-      getComputedStyle: () => ({ backgroundColor }),
+      getComputedStyle: () => ({ backgroundColor,
+        getPropertyValue: () => '#fff' }),
       window: { addEventListener: (event, callback) => { onLoad = callback; } },
       console: { warn() {}, error() {} },
       pele: { render: () => ({ svg: '<svg>t</svg>' }) }

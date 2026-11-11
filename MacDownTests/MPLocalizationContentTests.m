@@ -268,6 +268,7 @@ static NSSet<NSString *> *MPUniversalEnglishValues(void)
         @"MacDown 3000", @"Graphviz", @"Mermaid", @"Smartypants", @"CSS:",
         @"H1", @"H2", @"H3", @"H4", @"H5", @"H6",
         @"<binary location>", @"HTML…", @"PDF…",
+        @"Word (SVG)…", @"Word (compatible)…",
     ]];
 }
 

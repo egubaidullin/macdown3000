@@ -24,6 +24,7 @@
 #import "MPDocumentSplitView.h"
 #import "MPEditorView.h"
 #import "MPRenderer.h"
+#import "MPDocxWriter.h"
 #import "MPPreferencesViewController.h"
 #import "MPEditorPreferencesViewController.h"
 #import "MPExportPanelAccessoryViewController.h"
@@ -2797,6 +2798,76 @@ static BOOL MPScanFenceMarker(NSString *line, unichar *outChar, NSUInteger *outL
         [self printDocumentWithSettings:settings showPrintPanel:NO delegate:nil
                        didPrintSelector:NULL contextInfo:NULL];
     }];
+}
+
+// DOCX export shares the HTML export body (self-contained, scripts
+// embedded) but renders it in a hidden WebView so diagrams resolve to
+// SVG/PNG before the native writer serializes them. Runs on the main
+// thread; the bounded runloop spin mirrors the preview's own patterns.
+- (IBAction)exportDocxNative:(id)sender
+{
+    [self exportDocxWithNativeSVG:YES];
+}
+
+- (IBAction)exportDocxCompatible:(id)sender
+{
+    [self exportDocxWithNativeSVG:NO];
+}
+
+- (void)exportDocxWithNativeSVG:(BOOL)native
+{
+    NSSavePanel *panel = [NSSavePanel savePanel];
+    panel.allowedFileTypes = @[@"docx"];
+    if (self.presumedFileName) {
+        panel.nameFieldStringValue =
+            [[self.presumedFileName stringByDeletingPathExtension]
+             stringByAppendingPathExtension:@"docx"];
+    }
+    NSWindow *w = self.windowForSheet;
+    [panel beginSheetModalForWindow:w completionHandler:^(NSInteger result) {
+        if (result != NSFileHandlingPanelOKButton)
+            return;
+        NSURL *url = panel.URL;
+        __weak typeof(self) weakSelf = self;
+        // Issue #16: Ensure HTML is up-to-date before export.
+        [self performAfterRender:^{
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            [strongSelf renderDocxToURL:url nativeSVG:native];
+        }];
+    }];
+}
+
+- (void)renderDocxToURL:(NSURL *)url nativeSVG:(BOOL)native
+{
+    NSString *html = [self.renderer HTMLForExportWithStyles:YES
+                                               highlighting:self.preferences.htmlSyntaxHighlighting];
+    if (!html) {
+        [self showDocxExportError:@"Could not render the document."];
+        return;
+    }
+    NSError *error = nil;
+    NSData *docx = [MPDocxWriter docxDataWithExportHTML:html
+                                               baseURL:self.currentBaseUrl
+                                                 title:self.displayName
+                                             nativeSVG:native
+                                                 error:&error];
+    if (docx) {
+        if (![docx writeToURL:url atomically:YES]) {
+            [self showDocxExportError:@"Could not write the Word document."];
+        }
+    } else {
+        [self showDocxExportError:error.localizedDescription.length ?
+         error.localizedDescription : @"Could not build the Word document."];
+    }
+}
+
+- (void)showDocxExportError:(NSString *)message
+{
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = @"DOCX export failed";
+    alert.informativeText = message;
+    [alert runModal];
 }
 
 // Issue #504: Read the anchor-link model (links needing destinations, and the

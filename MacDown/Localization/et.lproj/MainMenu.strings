@@ -302,6 +302,10 @@
 
 /* Class = "NSMenuItem"; title = "PDF…"; ObjectID = "XFN-MJ-RrW"; */
 "XFN-MJ-RrW.title" = "PDF...";
+/* Class = "NSMenuItem"; title = "Word (SVG)…"; ObjectID = "WDNSvg71K"; */
+"WDNSvg71K.title" = "Word (SVG)…";
+/* Class = "NSMenuItem"; title = "Word (compatible)…"; ObjectID = "WDCmp72KL"; */
+"WDCmp72KL.title" = "Word (compatible)…";
 
 /* Class = "NSMenuItem"; title = "Paragraph"; ObjectID = "xN5-GU-ASF"; */
 "xN5-GU-ASF.title" = "Lõik";

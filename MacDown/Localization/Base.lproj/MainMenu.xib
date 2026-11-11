@@ -147,6 +147,18 @@
                                                 <action selector="exportPdf:" target="-1" id="Rhh-ni-CdX"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Word (SVG)…" id="WDNSvg71K">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="exportDocxNative:" target="-1" id="WDNSvgAc1"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Word (compatible)…" id="WDCmp72KL">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="exportDocxCompatible:" target="-1" id="WDCmpAc22"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>
