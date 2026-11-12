@@ -26,6 +26,16 @@ jobs:
     - name: Test build number script on a plist without version keys
       run: bash Tools/test_update_build_number.sh
 
+    # The DOM-adapter scripts (diagram rendering and the Word-export snapshot)
+    # are plain JavaScript with no Xcode target, so nothing else runs them.
+    - name: Run JavaScript tests
+      run: |
+        set -e
+        for test in MacDownTests/JavaScript/*.test.js; do
+          echo "== $test"
+          node "$test"
+        done
+
     - name: Setup MacDown build environment
       uses: ./.github/actions/setup-macdown
 
