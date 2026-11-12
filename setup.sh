@@ -24,8 +24,22 @@ echo ""
 
 # Step 2: Install Ruby dependencies
 echo "[2/4] Installing Ruby dependencies with Bundler..."
+# Gemfile.lock pins bundler 2.7.2, which the system Ruby 2.6 that ships with
+# macOS cannot provide. Homebrew's Ruby (3.x) can.
+if ! command -v ruby &> /dev/null; then
+    echo "Error: Ruby not found. Install it with: brew install ruby"
+    exit 1
+fi
+RUBY_MAJOR=$(ruby -e 'print RUBY_VERSION.split(".").first')
+if [ "$RUBY_MAJOR" -lt 3 ]; then
+    echo "Error: Ruby $RUBY_VERSION is too old for the pinned Bundler."
+    echo "Install Homebrew Ruby and put it first on PATH:"
+    echo "  brew install ruby"
+    echo "  export PATH=\"/opt/homebrew/opt/ruby/bin:\$PATH\""
+    exit 1
+fi
 if ! command -v bundle &> /dev/null; then
-    echo "Error: Bundler is not installed. Please install it with: gem install bundler"
+    echo "Error: Bundler is not installed. Please install it with: gem install bundler -v 2.7.2"
     exit 1
 fi
 bundle install
@@ -53,6 +67,9 @@ echo "  1. Open \"MacDown 3000.xcworkspace\" in Xcode"
 echo "  2. Select the MacDown scheme"
 echo "  3. Build and run (Cmd+R)"
 echo ""
-echo "To run tests:"
-echo "  xcodebuild test -workspace \"MacDown 3000.xcworkspace\" -scheme MacDown"
+echo "To build and test from the terminal (no signing certificate needed):"
+echo "  xcodebuild build -workspace \"MacDown 3000.xcworkspace\" -scheme MacDown \\"
+echo "    -configuration Debug -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO"
+echo "  xcodebuild test -workspace \"MacDown 3000.xcworkspace\" -scheme MacDown \\"
+echo "    -configuration Debug -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO"
 echo ""
