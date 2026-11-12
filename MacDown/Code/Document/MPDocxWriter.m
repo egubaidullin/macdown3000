@@ -458,8 +458,7 @@ static NSData *MPDocxZip(NSArray<NSDictionary *> *parts)
     return [self drawingXml:pngRelId svgRelId:svgRelId cx:cx cy:cy];
 }
 
-- (NSString *)documentXml:(NSArray *)blocks title:(NSString *)title
-               nativeSVG:(BOOL)native error:(NSError **)error
+- (NSString *)documentXml:(NSArray *)blocks nativeSVG:(BOOL)native
 {
     NSMutableString *body = [NSMutableString string];
     NSMutableString *numbering = [NSMutableString string];
@@ -581,7 +580,7 @@ static NSData *MPDocxZip(NSArray<NSDictionary *> *parts)
             }
             NSString *drawing = [self embedImageData:data width:w height:h
                                                      native:(native && [t isEqualToString:@"diagram"])
-                                                        svg:svg error:error];
+                                                        svg:svg error:NULL];
             if (drawing) {
                 [body appendFormat:@"<w:p>%@</w:p>", drawing];
             } else {
@@ -803,7 +802,7 @@ static NSData *MPDocxZip(NSArray<NSDictionary *> *parts)
     NSArray *blocks = model[@"blocks"];
     if (![blocks isKindOfClass:[NSArray class]])
         blocks = @[];
-    NSString *docXml = [w documentXml:blocks title:title nativeSVG:nativeSVG error:error];
+    NSString *docXml = [w documentXml:blocks nativeSVG:nativeSVG];
     if (!docXml)
         return nil;
     [w addPart:@"word/document.xml" data:[docXml dataUsingEncoding:NSUTF8StringEncoding]];

@@ -17,7 +17,6 @@ extern NSString * const MPDocxWriterErrorDomain;
 
 typedef NS_ENUM(NSInteger, MPDocxWriterError) {
     MPDocxWriterErrorBadModel = 1,
-    MPDocxWriterErrorNoContent,
     MPDocxWriterErrorRenderFailed,
 };
 

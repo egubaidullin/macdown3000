@@ -699,9 +699,6 @@ static BOOL MPPeleSpinUntil(NSTimeInterval timeout, BOOL (^condition)(void))
 
 #pragma mark - DOCX Export
 
-// Renders the pele-diagrams fixture to self-contained export HTML,
-// resolves it in an offscreen WebView, runs docx.snapshot.js and returns
-// the parsed document model (or nil on any failure).
 // Renders the pele-diagrams fixture to self-contained export HTML.
 - (NSString *)docxExportHTML
 {
