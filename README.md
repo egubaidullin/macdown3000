@@ -9,6 +9,10 @@ Why Pele: a smaller (0.7 MB vs 3.5 MB), actively maintained engine with CSS-vari
 theming and a simple render API — replacing Mermaid-specific workarounds with
 caching, error blocks, and light/dark preview themes.
 
+**Everything this fork changes relative to the original is listed in
+[docs/pele-edition.md](docs/pele-edition.md)** — engine, defaults, live-preview
+behaviour, Word export, minimum macOS, and tests.
+
 ## Download & Install
 
 Download `MacDown-3000-Pele.dmg` from the
